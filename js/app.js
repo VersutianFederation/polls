@@ -208,6 +208,7 @@ function app() {
                             optionsList.classList.add('list-group');
                             pollsOuter.appendChild(optionsList);
                             db.collection("nations").doc(internalName).get().then(function(test) {
+                                // ensure the nation exists
                                 if (!test.exists || !getPropertyValue(test.data(), poll.id)) {
                                     var nationBlankTemplate = {};
                                     Object.defineProperty(nationBlankTemplate, poll.id, {
@@ -230,6 +231,7 @@ function app() {
                                     });
                                     db.collection("nations").doc(internalName).set(nationBlankTemplate);
                                 }
+                                // requery
                                 db.collection("nations").doc(internalName).get().then(function(nation) {
                                     // check if the nation has locked in
                                     var nationObj;

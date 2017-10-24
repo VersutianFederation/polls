@@ -207,109 +207,127 @@ function app() {
                             var optionsList = document.createElement('div');
                             optionsList.classList.add('list-group');
                             pollsOuter.appendChild(optionsList);
-                            db.collection("nations").doc(internalName).get().then(function(nation) {
-                                // check if the nation has locked in
-                                var nationObj;
-                                var showResults = false;
-                                if (nation.exists) {
+                            db.collection("nations").doc(internalName).get().then(function(test) {
+                                if (!test.exists || !getPropertyValue(test.data(), poll.id)) {
+                                    var nationBlankTemplate = {};
+                                    Object.defineProperty(nationBlankTemplate, poll.id, {
+                                        value: {},
+                                        writable: true,
+                                        enumerable: true,
+                                        configurable: true
+                                    });
+                                    Object.defineProperty(getPropertyValue(nationBlankTemplate, poll.id), "selection", {
+                                        value: -1,
+                                        writable: true,
+                                        enumerable: true,
+                                        configurable: true
+                                    });
+                                    Object.defineProperty(getPropertyValue(nationBlankTemplate, poll.id), "submitted", {
+                                        value: false,
+                                        writable: true,
+                                        enumerable: true,
+                                        configurable: true
+                                    });
+                                    db.collection("nations").doc(internalName).set(nationBlankTemplate);
+                                }
+                                db.collection("nations").doc(internalName).get().then(function(nation) {
+                                    // check if the nation has locked in
+                                    var nationObj;
                                     nationObj = getPropertyValue(nation.data(), poll.id);
-                                    showResults = nationObj.submitted;
-                                }
-                                // check if the nation selected an option already
-                                var selectedOption;
-                                if (nation.exists) {
+                                    var showResults = nationObj.submitted;
+                                    // check if the nation selected an option already
                                     var selection = nationObj.selection;
-                                    selectedOption = selection !== -1;
-                                } else {
-                                    selectedOption = false;
-                                }
-                                // badges to be added once locked in
-                                var counts = [];
-                                Object.values(question.options).forEach(function(option, optionIndex) {
-                                    // create a new item in the options list
-                                    var optionListItem = document.createElement('a');
-                                    optionListItem.setAttribute('class', 'list-group-item list-group-item-action d-flex justify-content-between align-items-center');
-                                    // make a clickable anchor that doesn't go anywhere
-                                    optionListItem.href = "#";
-                                    optionListItem.onclick = "return false";
-                                    optionListItem.innerText = option.option;
-                                    optionsList.appendChild(optionListItem);
-                                    // add invis badge for count
-                                    var optionListItemCount = document.createElement('span');
-                                    optionListItemCount.setAttribute('class', 'badge badge-primary badge-pill');
-                                    optionListItemCount.innerText = option.count;
-                                    // show it if the nation has already opted into locking in their results
-                                    if (showResults) {
-                                        optionListItem.appendChild(optionListItemCount);
-                                    } else {
-                                        var index = counts.push([]) - 1;
-                                        counts[index] = [optionListItem, optionListItemCount];
-                                    }
-                                    // they haven't selected an option and haven't locked in
-                                    if (!selectedOption && !showResults) {
-                                        optionListItem.addEventListener('click', function() {
-                                            if (!selectedOption) {
-                                                // prevent further selections
-                                                selectedOption = true;
-                                                // highlight user's selection
-                                                optionListItem.classList.add('active');
-                                                // update the nation's selection in database
-                                                var nationMerge = {};
-                                                Object.defineProperty(nationMerge, poll.id + ".selection", {
-                                                    value: optionIndex,
-                                                    writable: true,
-                                                    enumerable: true,
-                                                    configurable: true
-                                                });
-                                                nation.ref.update(nationMerge);
-                                                // increase option count on poll
-                                                option.count += 1;
-                                                var optionMerge = {};
-                                                Object.defineProperty(optionMerge, "questions." + questionIndex + ".options." + optionIndex + ".count", {
-                                                    value: option.count,
-                                                    writable: true,
-                                                    enumerable: true,
-                                                    configurable: true
-                                                });
-                                                poll.ref.update(optionMerge);
-                                            }
+                                    var selectedOption = selection !== -1;
+                                    // badges to be added once locked in
+                                    var counts = [];
+                                    Object.values(question.options).forEach(function(option, optionIndex) {
+                                        // create a new item in the options list
+                                        var optionListItem = document.createElement('a');
+                                        optionListItem.setAttribute('class', 'list-group-item list-group-item-action d-flex justify-content-between align-items-center');
+                                        // make a clickable anchor that doesn't go anywhere
+                                        optionListItem.href = "#";
+                                        optionListItem.onclick = "return false";
+                                        optionListItem.innerText = option.option;
+                                        optionsList.appendChild(optionListItem);
+                                        // add invis badge for count
+                                        var optionListItemCount = document.createElement('span');
+                                        optionListItemCount.setAttribute('class', 'badge badge-primary badge-pill');
+                                        optionListItemCount.innerText = option.count;
+                                        // show it if the nation has already opted into locking in their results
+                                        if (showResults) {
+                                            optionListItem.appendChild(optionListItemCount);
+                                        } else {
+                                            // else, queue it in case they lock in later
+                                            var index = counts.push([]) - 1;
+                                            counts[index] = [optionListItem, optionListItemCount];
+                                        }
+                                        // they haven't selected an option and haven't locked in
+                                        if (!selectedOption && !showResults) {
+                                            optionListItem.addEventListener('click', function() {
+                                                if (!selectedOption) {
+                                                    // prevent further selections
+                                                    selectedOption = true;
+                                                    // highlight user's selection
+                                                    optionListItem.classList.add('active');
+                                                    // update the nation's selection in database
+                                                    var nationMerge = {};
+                                                    Object.defineProperty(nationMerge, poll.id + ".selection", {
+                                                        value: optionIndex,
+                                                        writable: true,
+                                                        enumerable: true,
+                                                        configurable: true
+                                                    });
+                                                    nation.ref.update(nationMerge);
+                                                    // increase option count on poll
+                                                    option.count += 1;
+                                                    optionListItemCount.innerText = option.count;
+                                                    var optionMerge = {};
+                                                    Object.defineProperty(optionMerge, "questions." + questionIndex + ".options." + optionIndex + ".count", {
+                                                        value: option.count,
+                                                        writable: true,
+                                                        enumerable: true,
+                                                        configurable: true
+                                                    });
+                                                    poll.ref.update(optionMerge);
+                                                }
+                                            });
+                                        } else if (selection === optionIndex) { 
+                                            // they've previously selected an option, highlight it
+                                            optionListItem.classList.add('active');
+                                        }
+                                    });
+                                    if (!document.getElementById('submit-btn') && !showResults) {
+                                        // add submit button
+                                        pollsOuter.appendChild(document.createElement('br'));
+                                        var submitBtn = document.createElement('button');
+                                        submitBtn.setAttribute('class', 'btn btn-primary btn-lg');
+                                        submitBtn.id = "submit-btn";
+                                        submitBtn.innerText = 'See results';
+                                        submitBtn.addEventListener('click', function() {
+                                            // lock the nation in on the database
+                                            var nationSubmitted = {};
+                                            Object.defineProperty(nationSubmitted, poll.id + ".submitted", {
+                                                value: true,
+                                                writable: true,
+                                                enumerable: true,
+                                                configurable: true
+                                            });
+                                            nation.ref.update(nationSubmitted);
+                                            // make the results visible
+                                            showResults = true;
+                                            counts.forEach(function(pair) {
+                                                pair[0].appendChild(pair[1]);
+                                            });
+                                            // thank user for submission
+                                            submitBtn.remove();
+                                            recordSubmission(pollsOuter, selectedOption);
                                         });
-                                    } else if (selection === optionIndex) { 
-                                        // they've previously selected an option, highlight it
-                                        optionListItem.classList.add('active');
+                                        pollsOuter.appendChild(submitBtn);
+                                    } else if (showResults) {
+                                        // thank user for submission
+                                        recordSubmission(pollsOuter, selectedOption, true);
                                     }
                                 });
-                                if (!document.getElementById('submit-btn') && !showResults) {
-                                    // add submit button
-                                    pollsOuter.appendChild(document.createElement('br'));
-                                    var submitBtn = document.createElement('button');
-                                    submitBtn.setAttribute('class', 'btn btn-primary btn-lg');
-                                    submitBtn.id = "submit-btn";
-                                    submitBtn.innerText = 'See results';
-                                    submitBtn.addEventListener('click', function() {
-                                        // lock the nation in on the database
-                                        var nationSubmitted = {};
-                                        Object.defineProperty(nationSubmitted, poll.id + ".submitted", {
-                                            value: true,
-                                            writable: true,
-                                            enumerable: true,
-                                            configurable: true
-                                        });
-                                        nation.ref.update(nationSubmitted);
-                                        // make the results visible
-                                        showResults = true;
-                                        counts.forEach(function(pair) {
-                                            pair[0].appendChild(pair[1]);
-                                        });
-                                        // thank user for submission
-                                        submitBtn.remove();
-                                        recordSubmission(pollsOuter, selectedOption);
-                                    });
-                                    pollsOuter.appendChild(submitBtn);
-                                } else if (showResults) {
-                                    // thank user for submission
-                                    recordSubmission(pollsOuter, selectedOption, true);
-                                }
                             });
                         });
                     });

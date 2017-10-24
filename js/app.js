@@ -208,7 +208,7 @@ function app() {
                             optionsList.classList.add('list-group');
                             pollsOuter.appendChild(optionsList);
                             db.collection("nations").doc(internalName).get().then(function(test) {
-                                // ensure the nation exists
+                                // ensure the nation and poll data exists
                                 if (!test.exists || !getPropertyValue(test.data(), poll.id)) {
                                     var nationBlankTemplate = {};
                                     Object.defineProperty(nationBlankTemplate, poll.id, {
@@ -348,6 +348,30 @@ function app() {
         }
         getPolls();
     }
+
+    function collapseHeader() {
+        document.getElementById('header-toggle').removeEventListener('click', collapseHeader, false);
+        document.getElementById('header-toggle').innerHTML = '<span class="fa fa-arrow-down" aria-hidden="true"></span> Expand <span class="fa fa-arrow-down" aria-hidden="true"></span>';
+        document.getElementById('header-additional').style.display = 'none';
+        document.getElementById('header').classList.remove('jumbotron');
+        document.getElementById('header').classList.remove('jumbotron-fluid');
+        document.getElementById('header').style.paddingTop = "1rem";
+        document.getElementById('header').style.paddingBottom = "1rem";
+        document.getElementById('header-toggle').addEventListener('click', expandHeader, false);
+    }
+    
+    function expandHeader() {
+        document.getElementById('header-toggle').removeEventListener('click', expandHeader, false);
+        document.getElementById('header-toggle').innerHTML = '<span class="fa fa-arrow-up" aria-hidden="true"></span> Collapse <span class="fa fa-arrow-up" aria-hidden="true"></span>';
+        document.getElementById('header-additional').style.display = 'block';
+        document.getElementById('header').classList.add('jumbotron');
+        document.getElementById('header').classList.add('jumbotron-fluid');
+        document.getElementById('header').style.paddingTop = null;
+        document.getElementById('header').style.paddingBottom = null;
+        document.getElementById('header-toggle').addEventListener('click', collapseHeader, false);
+    }
+
+    document.getElementById('header-toggle').addEventListener('click', collapseHeader);
 
     firebase.auth().onAuthStateChanged(function (user) {
         // are we logged in?

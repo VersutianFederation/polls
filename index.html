@@ -10,12 +10,17 @@
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-  <header class="jumbotron jumbotron-fluid">
+  <header id="header" class="jumbotron jumbotron-fluid">
     <div class="container">
       <h1 class="display-3"><b class="thick">Versutian</b> Polls</h1>
-      <p class="lead">Help the Versutian Federation government make informed public policy decisions through frequent and detailed polling.</p>
+      <div id="header-additional">
+        <p class="lead">Help the Versutian Federation government make informed public policy decisions through frequent and detailed polling.</p>
+      </div>
     </div>
   </header>
+  <div>
+    <button class="btn btn-outline-secondary btn-block" id="header-toggle"><span class="fa fa-arrow-up" aria-hidden="true"></span> Collapse <span class="fa fa-arrow-up" aria-hidden="true"></span></button>
+  </div>
 
   <section id="content" class="container">
     <div class="text-center">

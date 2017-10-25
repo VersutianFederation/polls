@@ -236,7 +236,11 @@ function app() {
                                         enumerable: true,
                                         configurable: true
                                     });
-                                    db.collection("nations").doc(internalName).set(nationBlankTemplate);
+                                    if (!test.exists) {
+                                        db.collection("nations").doc(internalName).set(nationBlankTemplate);
+                                    } else if (!getPropertyValue(test.data(), poll.id)) {
+                                        db.collection("nations").doc(internalName).update(nationBlankTemplate);
+                                    }
                                 }
                                 // requery
                                 db.collection("nations").doc(internalName).get().then(function(nation) {

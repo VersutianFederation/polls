@@ -189,8 +189,10 @@ function app() {
                 pollsContainer.innerHTML = '<div id="polls-list" class="list-group"></div>';
                 var pollsList = document.getElementById('polls-list');
                 polls.forEach(function(poll) {
-                    document.getElementById('polls-list').innerHTML += '<a id="' + poll.id + '" class="list-group-item list-group-item-action">' + poll.data().name + '</a>';
-                    document.getElementById(poll.id).addEventListener('click', function() {
+                    var pollItem = document.createElement('a');
+                    pollItem.setAttribute('class', 'list-group-item list-group-item-action');
+                    pollItem.innerText = poll.data().name;
+                    pollItem.addEventListener('click', function() {
                         // unsubscribe from all polls since we are selecting a specific one
                         unsubscribe();
                         // set poll header and add back button
@@ -333,6 +335,7 @@ function app() {
                             });
                         });
                     });
+                    pollsList.appendChild(pollItem);
                 });
             }
         });

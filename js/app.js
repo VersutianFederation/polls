@@ -170,14 +170,19 @@ function app() {
         document.getElementById('embed-switch').addEventListener('click', loginEmbed);
     }
 
-    function recordSubmission(pollsOuter, selected, br) {
-        if (br) {
+    function recordSubmission(pollsOuter, selected) {
+        var submissionContainer = document.getElementById('submission-container');
+        if (!submissionContainer) {
             pollsOuter.appendChild(document.createElement('br'));
         }
         var thanks = document.createElement('p');
         thanks.classList.add('lead');
         thanks.innerText = 'Thank you. Your ' + (selected ? 'submission' : 'abstention') + ' has been recorded.';
-        pollsOuter.appendChild(thanks);
+        (submissionContainer ? submissionContainer : pollsOuter).appendChild(thanks);
+        if (!submissionContainer) {
+            pollsOuter.appendChild(document.createElement('br'));
+            pollsOuter.appendChild(document.createElement('br'));
+        }
     }
 
     function getPolls() {
@@ -326,7 +331,12 @@ function app() {
                                             submitBtn.remove();
                                             recordSubmission(pollsOuter, selectedOption);
                                         });
-                                        pollsOuter.appendChild(submitBtn);
+                                        var submissionContainer = document.createElement('div');
+                                        submissionContainer.id = 'submission-container';
+                                        submissionContainer.appendChild(submitBtn);
+                                        pollsOuter.appendChild(submissionContainer);
+                                        pollsOuter.appendChild(document.createElement('br'));
+                                        pollsOuter.appendChild(document.createElement('br'));
                                     } else if (showResults) {
                                         // thank user for submission
                                         recordSubmission(pollsOuter, selectedOption, true);

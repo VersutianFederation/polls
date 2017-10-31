@@ -16,7 +16,8 @@ header {
 
 #header-toggle:hover {
     color: #fff;
-    background-color: #292b2c
+    background-color: #292b2c;
+    border-color: #292b2c
 }
 
 .thick {

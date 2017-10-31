@@ -8,18 +8,14 @@ header {
 }
 
 #header-toggle {
-    color: #292b2c; 
+    color: #292b2c;
     border-color: #fff;
-    border-bottom-color: #292b2c;
     margin-bottom: 1.75rem;
-    border-radius: 0;
-    transition-duration: 0.4s
+    border-radius: 0
 }
 
 #header-toggle:hover {
-    color: #fff; 
-    border-color: #292b2c;
-    border-top-color: #fff;
+    color: #fff;
     background-color: #292b2c
 }
 

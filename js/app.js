@@ -185,19 +185,35 @@ function app() {
         (submissionContainer ? submissionContainer : pollsOuter).appendChild(reset);
         reset.addEventListener('click', function() {
             var deleteObj = {};
-            Object.defineProperty(deleteObj, poll.id + ".selection", {
-                value: -1,
-                writable: true,
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(deleteObj, poll.id + ".submitted", {
-                value: false,
-                writable: true,
-                enumerable: true,
-                configurable: true
-            });
-            nation.ref.update(deleteObj);
+            var listItem = document.getElementsByClassName('active');
+            if (listItem.length == 1) {
+                Object.defineProperty(deleteObj, poll.id + ".selection", {
+                    value: -1,
+                    writable: true,
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(deleteObj, poll.id + ".submitted", {
+                    value: false,
+                    writable: true,
+                    enumerable: true,
+                    configurable: true
+                });
+                nation.ref.update(deleteObj);
+                var item = listItem.item(0);
+                var question = parseInt(item.parentElement.id);
+                var option = parseInt(item.id);
+                var count = parseInt(item.children.item(0).innerText);
+                count--;
+                var optionMerge = {};
+                Object.defineProperty(optionMerge, "questions." + question + ".options." + option + ".count", {
+                    value: count,
+                    writable: true,
+                    enumerable: true,
+                    configurable: true
+                });
+                poll.ref.update(optionMerge);
+            }
             fillInPolls();
         });
         if (!submissionContainer) {
@@ -221,6 +237,7 @@ function app() {
             pollsOuter.appendChild(questionHeader);
             // list of options
             var optionsList = document.createElement('div');
+            optionsList.id = questionIndex;
             optionsList.classList.add('list-group');
             pollsOuter.appendChild(optionsList);
             db.collection("nations").doc(internalName).get().then(function(test) {
@@ -268,6 +285,7 @@ function app() {
                         optionListItem.setAttribute('class', 'list-group-item list-group-item-action d-flex justify-content-between align-items-center');
                         // make a clickable anchor that doesn't go anywhere
                         optionListItem.href = "#";
+                        optionListItem.id = optionIndex;
                         optionListItem.onclick = "return false";
                         optionListItem.innerText = option.option;
                         optionsList.appendChild(optionListItem);

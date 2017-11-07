@@ -50,7 +50,7 @@ function app() {
                         alert('You have been banned for ' + xhr.getResponseHeader('x-retry-after') + ' seconds by the NationStates API');
                         nsBan = true;
                     }
-                    // don't callback, we didn't data
+                    // don't callback, we didn't get data
                     return;
                 } else {
                     // reset ban notification tracker
@@ -141,7 +141,7 @@ function app() {
             request("https://www.nationstates.net/cgi-bin/api.cgi?a=verify&nation=" + nationName + "&checksum=" + verificationCode, function(verifyRes) {
                 if (verifyRes != 0) {
                     // verified, get our sign in token
-                    request("https://api.versutian.site/token?nation=" + internalName, function(tokenRes) {
+                    request("https://api.versutian.site:8080/token?nation=" + internalName, function(tokenRes) {
                         firebase.auth().signInWithCustomToken(tokenRes).catch(function(error) {
                             console.log(error.message);
                         });
@@ -171,35 +171,43 @@ function app() {
     }
 
     function recordSubmission(pollsOuter, selected, poll, nation) {
+        // this is added if we added the submission button before, and therefore already have space
         var submissionContainer = document.getElementById('submission-container');
+        // add space between the poll and the thank you message + reset button
         if (!submissionContainer) {
             pollsOuter.appendChild(document.createElement('br'));
         }
+        // thank you
         var thanks = document.createElement('p');
         thanks.classList.add('lead');
         thanks.innerText = 'Thank you. Your ' + (selected ? 'submission' : 'abstention') + ' has been recorded.';
         (submissionContainer ? submissionContainer : pollsOuter).appendChild(thanks);
+        // reset button
         var reset = document.createElement('button');
         reset.setAttribute('class', 'btn btn-primary btn-sm');
         reset.innerText = 'Reset poll';
         (submissionContainer ? submissionContainer : pollsOuter).appendChild(reset);
         reset.addEventListener('click', function() {
+            // always overwrite nation data with empty data
             var deleteObj = {};
+            Object.defineProperty(deleteObj, poll.id + ".selection", {
+                value: -1,
+                writable: true,
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(deleteObj, poll.id + ".submitted", {
+                value: false,
+                writable: true,
+                enumerable: true,
+                configurable: true
+            });
+            nation.ref.update(deleteObj);
+            // decrement poll data
             var listItem = document.getElementsByClassName('active');
+            // if we voted, decrement poll data
             if (listItem.length == 1) {
-                Object.defineProperty(deleteObj, poll.id + ".selection", {
-                    value: -1,
-                    writable: true,
-                    enumerable: true,
-                    configurable: true
-                });
-                Object.defineProperty(deleteObj, poll.id + ".submitted", {
-                    value: false,
-                    writable: true,
-                    enumerable: true,
-                    configurable: true
-                });
-                nation.ref.update(deleteObj);
+                // get the vote count from our selection
                 var item = listItem.item(0);
                 var question = parseInt(item.parentElement.id);
                 var option = parseInt(item.id);
@@ -214,8 +222,10 @@ function app() {
                 });
                 poll.ref.update(optionMerge);
             }
+            // force user to fresh their polls
             fillInPolls();
         });
+        // add some footer space for better scrolling
         if (!submissionContainer) {
             pollsOuter.appendChild(document.createElement('br'));
             pollsOuter.appendChild(document.createElement('br'));
@@ -386,9 +396,11 @@ function app() {
                 pollsContainer.innerHTML = '<div id="polls-list" class="list-group"></div>';
                 var pollsList = document.getElementById('polls-list');
                 polls.forEach(function(poll) {
+                    // make a list item for each poll
                     var pollItem = document.createElement('a');
                     pollItem.setAttribute('class', 'list-group-item list-group-item-action');
                     pollItem.innerText = poll.data().name;
+                    // add the select poll on click
                     pollItem.addEventListener('click', function() {
                         selectPoll(unsubscribe, poll);
                     });

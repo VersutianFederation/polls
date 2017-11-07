@@ -141,7 +141,7 @@ function app() {
             request("https://www.nationstates.net/cgi-bin/api.cgi?a=verify&nation=" + nationName + "&checksum=" + verificationCode, function(verifyRes) {
                 if (verifyRes != 0) {
                     // verified, get our sign in token
-                    request("https://api.versutian.site:8080/token?nation=" + internalName, function(tokenRes) {
+                    request("https://api.versutian.site/token?nation=" + internalName, function(tokenRes) {
                         firebase.auth().signInWithCustomToken(tokenRes).catch(function(error) {
                             console.log(error.message);
                         });
